@@ -1,1 +1,1 @@
-export { searchTorrentsPlaceholder } from '@/services/scraper/torrentSearch';
+export { searchTorrents } from '@/services/scraper/torrentSearch';

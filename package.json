@@ -8,6 +8,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "test": "bun test",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier \"src/**/*.{ts,tsx,css}\" \"*.{js,json}\" --check",
@@ -36,6 +37,7 @@
     "zustand": "latest"
   },
   "devDependencies": {
+    "@types/bun": "latest",
     "@types/react": "~19.1.10",
     "eslint": "^9.0.0",
     "eslint-config-expo": "latest",
