@@ -16,7 +16,7 @@ export default function RootLayout() {
           screenOptions={{
             headerStyle: { backgroundColor: colors.background },
             headerShadowVisible: false,
-            headerTintColor: colors.foreground,
+            headerTintColor: colors.textPrimary,
             contentStyle: { backgroundColor: colors.background },
           }}
         >
@@ -24,10 +24,7 @@ export default function RootLayout() {
           <Stack.Screen name="home" options={{ headerShown: false }} />
           <Stack.Screen name="search" options={{ headerShown: false }} />
           <Stack.Screen name="history" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="torrent/[id]"
-            options={{ title: 'Torrent Details' }}
-          />
+          <Stack.Screen name="torrent/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="favorites" options={{ headerShown: false }} />
           <Stack.Screen name="settings" options={{ headerShown: false }} />
         </Stack>

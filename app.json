@@ -13,7 +13,7 @@
     "android": {
       "package": "com.torrentbay.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0F172A"
+        "backgroundColor": "#08111F"
       }
     },
     "web": {
@@ -24,11 +24,14 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#05070C",
-          "dark": { "backgroundColor": "#05070C" }
+          "backgroundColor": "#08111F",
+          "dark": {
+            "backgroundColor": "#08111F"
+          }
         }
       ],
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true

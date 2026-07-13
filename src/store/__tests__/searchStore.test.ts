@@ -6,12 +6,14 @@ import {
   useSearchStore,
 } from '@/store/searchStore';
 import { ScraperError } from '@/services/scraper/scraperErrors';
+import { useHistoryStore } from '@/store/historyStore';
 
 const torrent = { id: 'fixture-1', name: 'Fixture result' };
 
 describe('searchStore', () => {
   afterEach(() => {
     useSearchStore.getState().reset();
+    useHistoryStore.getState().clearHistory();
     resetSearchServiceForTests();
   });
 
@@ -32,6 +34,9 @@ describe('searchStore', () => {
       results: [torrent],
       recentSearches: ['ubuntu'],
     });
+    expect(useHistoryStore.getState().history).toMatchObject([
+      { query: 'ubuntu', category: 'all', sort: 'relevance' },
+    ]);
   });
 
   test('prevents stale responses from overwriting newer searches', async () => {
@@ -324,6 +329,31 @@ describe('searchStore', () => {
       results: [torrent],
       recentSearches: [],
     });
+    expect(useHistoryStore.getState().history).toEqual([]);
+  });
+
+  test('records committed searches with category and sort in persistent history', async () => {
+    setSearchServiceForTests(async (params) => ({
+      query: params.query,
+      page: params.page ?? 1,
+      category: params.category ?? 'all',
+      sort: params.sort ?? 'relevance',
+      results: [torrent],
+    }));
+
+    await useSearchStore.getState().search({
+      query: 'ubuntu',
+      category: 'applications',
+      sort: 'seeders_desc',
+    });
+
+    expect(useHistoryStore.getState().history).toMatchObject([
+      {
+        query: 'ubuntu',
+        category: 'applications',
+        sort: 'seeders_desc',
+      },
+    ]);
   });
 
   test('input edits invalidate active requests before stale responses land', async () => {

@@ -12,7 +12,14 @@ type ChipProps = PressableProps & {
 
 export const Chip = forwardRef<ComponentRef<typeof Pressable>, ChipProps>(
   function Chip(
-    { label, selected = false, className, disabled, ...props },
+    {
+      label,
+      selected = false,
+      className,
+      disabled,
+      hitSlop = { top: 4, bottom: 4 },
+      ...props
+    },
     ref,
   ) {
     return (
@@ -21,21 +28,23 @@ export const Chip = forwardRef<ComponentRef<typeof Pressable>, ChipProps>(
         accessibilityRole="button"
         accessibilityState={{ disabled: disabled ?? undefined, selected }}
         className={cn(
-          'min-h-11 items-center justify-center rounded-full border px-4 py-2',
+          'h-10 min-w-12 items-center justify-center self-start rounded-sm border px-4 py-0',
           selected
-            ? 'border-primary bg-primary'
-            : 'border-border bg-surfaceElevated',
-          disabled ? 'opacity-50' : 'active:opacity-80',
+            ? 'border-primary bg-primary-soft'
+            : 'border-border bg-surface-muted',
+          disabled ? 'opacity-50' : 'active:opacity-85',
           className,
         )}
         disabled={disabled}
+        hitSlop={hitSlop}
         {...props}
       >
         <Text
           className={cn(
-            'text-sm font-semibold',
-            selected ? 'text-foreground' : 'text-muted',
+            'text-center text-sm font-semibold',
+            selected ? 'text-primary' : 'text-content-secondary',
           )}
+          numberOfLines={1}
         >
           {label}
         </Text>

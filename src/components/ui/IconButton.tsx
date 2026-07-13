@@ -23,8 +23,10 @@ export const IconButton = forwardRef<
       accessibilityRole="button"
       accessibilityState={{ disabled: disabled ?? undefined }}
       className={cn(
-        'min-h-12 min-w-12 items-center justify-center rounded-full border border-border bg-surfaceElevated',
-        disabled ? 'opacity-50' : 'active:opacity-80',
+        'h-12 w-12 items-center justify-center rounded-full border border-border bg-surface-muted',
+        disabled
+          ? 'opacity-50'
+          : 'active:bg-surface-elevated active:opacity-85',
         className,
       )}
       disabled={disabled}

@@ -23,7 +23,7 @@ export function Screen({
       <SafeAreaView className={cn('flex-1 bg-background', className)}>
         <View
           className={cn(
-            'flex-1 items-center justify-center px-6',
+            'flex-1 items-center justify-center px-4 py-6',
             contentClassName,
           )}
         >
@@ -36,7 +36,7 @@ export function Screen({
   if (!scroll) {
     return (
       <SafeAreaView className={cn('flex-1 bg-background', className)}>
-        <View className={cn('flex-1 px-5 py-6', contentClassName)}>
+        <View className={cn('flex-1 px-4 py-6', contentClassName)}>
           {children}
         </View>
       </SafeAreaView>
@@ -46,7 +46,7 @@ export function Screen({
   return (
     <SafeAreaView className={cn('flex-1 bg-background', className)}>
       <ScrollView
-        contentContainerClassName={cn('px-5 py-6', contentClassName)}
+        contentContainerClassName={cn('flex-grow px-4 py-6', contentClassName)}
         keyboardShouldPersistTaps="handled"
       >
         {children}

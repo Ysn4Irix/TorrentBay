@@ -1,5 +1,5 @@
-import { Search, X } from 'lucide-react-native';
-import { Pressable, TextInput, View } from 'react-native';
+import { ArrowRight, Search, X } from 'lucide-react-native';
+import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
 
 import { IconButton } from '@/components/ui/IconButton';
 import { Text } from '@/components/ui/Text';
@@ -14,7 +14,9 @@ type SearchInputProps = {
   label?: string;
   placeholder?: string;
   autoFocus?: boolean;
+  loading?: boolean;
   showSubmitButton?: boolean;
+  variant?: 'standard' | 'compact';
 };
 
 export function SearchInput({
@@ -23,52 +25,78 @@ export function SearchInput({
   onClear,
   onSubmit,
   label = 'Search torrents',
-  placeholder = 'Movies, Linux ISOs, apps...',
+  placeholder = 'Search torrents',
   autoFocus = false,
+  loading = false,
   showSubmitButton = true,
+  variant = 'standard',
 }: SearchInputProps) {
   const canSubmit = value.trim().length > 0;
+  const isCompact = variant === 'compact';
 
   return (
     <View>
-      <Text className="mb-2 text-sm font-semibold text-muted">{label}</Text>
-      <View className="min-h-14 flex-row items-center rounded-3xl border border-border bg-surfaceElevated px-4">
-        <Search color={colors.primarySoft} size={20} />
+      {!isCompact ? (
+        <Text className="mb-2 text-sm font-semibold text-content-secondary">
+          {label}
+        </Text>
+      ) : null}
+      <View
+        className={cn(
+          'flex-row items-center rounded-md border border-border bg-surface-elevated',
+          isCompact ? 'min-h-12 pl-3 pr-1' : 'min-h-14 pl-4 pr-1',
+        )}
+      >
+        <Search color={colors.primary} size={isCompact ? 18 : 20} />
         <TextInput
           accessibilityLabel={label}
           autoCapitalize="none"
           autoCorrect={false}
           autoFocus={autoFocus}
-          className="min-h-12 flex-1 px-3 text-base text-foreground"
+          className={cn(
+            'min-h-12 flex-1 px-3 text-content-primary',
+            isCompact ? 'text-[15px]' : 'text-base',
+          )}
           onChangeText={onChangeText}
           onSubmitEditing={onSubmit}
           placeholder={placeholder}
-          placeholderTextColor={colors.muted}
+          placeholderTextColor={colors.textMuted}
           returnKeyType="search"
           value={value}
         />
         {value.length > 0 ? (
           <IconButton
             accessibilityLabel="Clear search input"
-            className="min-h-11 min-w-11 border-transparent bg-transparent"
+            className="border-transparent bg-transparent"
             onPress={onClear}
           >
-            <X color={colors.muted} size={20} />
+            <X color={colors.textMuted} size={20} />
           </IconButton>
         ) : null}
         {showSubmitButton ? (
           <Pressable
             accessibilityLabel="Submit search"
             accessibilityRole="button"
-            accessibilityState={{ disabled: !canSubmit }}
+            accessibilityState={{ busy: loading, disabled: !canSubmit }}
             className={cn(
-              'ml-2 h-11 w-11 items-center justify-center rounded-2xl bg-primary',
-              canSubmit ? 'active:opacity-80' : 'opacity-50',
+              'ml-1 items-center justify-center rounded-md bg-primary',
+              isCompact ? 'h-10 w-10' : 'h-12 w-12',
+              canSubmit
+                ? 'active:bg-primary-pressed active:opacity-85'
+                : 'opacity-50',
             )}
             disabled={!canSubmit}
+            hitSlop={isCompact ? 4 : undefined}
             onPress={onSubmit}
           >
-            <Search color={colors.foreground} size={20} />
+            {loading ? (
+              <ActivityIndicator color={colors.background} size="small" />
+            ) : (
+              <ArrowRight
+                color={colors.background}
+                size={isCompact ? 18 : 20}
+              />
+            )}
           </Pressable>
         ) : null}
       </View>

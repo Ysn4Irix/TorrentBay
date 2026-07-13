@@ -43,7 +43,7 @@ function mapKnownCode(
         kind: 'provider_unavailable',
         title: 'Provider unavailable',
         message:
-          'The provider is not reachable right now. Check your connection or retry shortly.',
+          'The external search provider did not respond. Your query has been preserved.',
         retryable: true,
       };
     case 'rate_limited':
@@ -59,9 +59,8 @@ function mapKnownCode(
     case 'parse_failed':
       return {
         kind: 'layout_changed',
-        title: 'Provider layout changed',
-        message:
-          'TorrentBay could not read the provider response. This usually needs a parser update.',
+        title: 'Results could not be read',
+        message: 'The provider page may have changed. Try again later.',
         retryable: true,
       };
     default:
@@ -83,8 +82,9 @@ export function mapScraperError(error: unknown): SearchErrorState {
   ) {
     return {
       kind: 'network',
-      title: 'You appear offline',
-      message: 'Check your network connection, then retry the search.',
+      title: 'You’re offline',
+      message:
+        'Reconnect to search the provider. Saved favorites and history are still available.',
       retryable: true,
     };
   }

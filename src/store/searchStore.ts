@@ -11,6 +11,7 @@ import {
   TorrentSearchResponse,
   TorrentSort,
 } from '@/models/torrent';
+import { useHistoryStore } from '@/store/historyStore';
 
 type SearchStatus = 'idle' | 'loading' | 'success' | 'empty' | 'error';
 
@@ -230,6 +231,10 @@ export const useSearchStore = create<SearchState>((set) => ({
               : state.recentSearches,
         }));
 
+        if (commit) {
+          useHistoryStore.getState().recordSearch({ query, category, sort });
+        }
+
         return;
       }
     }
@@ -247,6 +252,7 @@ export const useSearchStore = create<SearchState>((set) => ({
         page,
         category,
         sort,
+        results: page === 1 ? [] : currentState.results,
         status: 'loading',
         error: null,
         activeRequestId: requestId,
@@ -260,16 +266,22 @@ export const useSearchStore = create<SearchState>((set) => ({
           return;
         }
 
+        const shouldRecordSearch = inFlightShouldCommit;
+
         set((state) => ({
           results: response.results,
           status: response.results.length > 0 ? 'success' : 'empty',
           error: null,
           activeRequestKey: null,
           currentSearchKey: searchKey,
-          recentSearches: inFlightShouldCommit
+          recentSearches: shouldRecordSearch
             ? addRecentSearch(state.recentSearches, query)
             : state.recentSearches,
         }));
+
+        if (shouldRecordSearch) {
+          useHistoryStore.getState().recordSearch({ query, category, sort });
+        }
       } catch (error) {
         if (useSearchStore.getState().activeRequestId !== requestId) {
           return;

@@ -36,7 +36,7 @@ describe('mapScraperError', () => {
           cause: new TypeError('Network request failed'),
         }),
       ),
-    ).toMatchObject({ kind: 'network', title: 'You appear offline' });
+    ).toMatchObject({ kind: 'network', title: 'You’re offline' });
 
     expect(
       mapScraperError(

@@ -1,52 +1,111 @@
-import { Link, router, useFocusEffect } from 'expo-router';
-import { Clock3, Search, Settings, Star } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
-import { View } from 'react-native';
+import { Link, router } from 'expo-router';
+import {
+  ChevronRight,
+  Clock3,
+  Info,
+  Search as SearchIcon,
+  Settings,
+  Star,
+} from 'lucide-react-native';
+import { useEffect, useMemo } from 'react';
+import { Pressable, View } from 'react-native';
 
+import { BrandWordmark } from '@/components/brand/BrandMark';
 import { BottomShortcuts } from '@/components/navigation/BottomShortcuts';
 import { Card } from '@/components/ui/Card';
-import { Chip } from '@/components/ui/Chip';
 import { IconButton } from '@/components/ui/IconButton';
 import { Text } from '@/components/ui/Text';
 import { Screen } from '@/components/ui/Screen';
 import { colors } from '@/constants/theme';
+import {
+  getSearchCategoryLabel,
+  getVisibleSearchCategories,
+} from '@/features/search/constants';
 import { CategoryGrid } from '@/features/search/components/CategoryGrid';
 import { SearchInput } from '@/features/search/components/SearchInput';
-import { useInstantTorrentSearch } from '@/features/search/hooks/useTorrentSearch';
-import { TorrentCategory } from '@/models/torrent';
+import { TorrentCard } from '@/features/torrents/components/TorrentCard';
+import { Torrent, TorrentCategory } from '@/models/torrent';
 import { useFavoritesStore } from '@/store/favoritesStore';
+import { useHistoryStore } from '@/store/historyStore';
 import { useSearchStore } from '@/store/searchStore';
+import { useSettingsStore } from '@/store/settingsStore';
+import { cn } from '@/utils/cn';
+
+function isAdultTorrent(torrent: Torrent) {
+  return [torrent.category, torrent.subcategory].some(
+    (value) => value?.trim().toLowerCase() === 'adult',
+  );
+}
+
+function formatRelativeSearchDate(value: string) {
+  const timestamp = new Date(value).getTime();
+
+  if (Number.isNaN(timestamp)) {
+    return 'Recently';
+  }
+
+  const diffMs = Date.now() - timestamp;
+  const diffMinutes = Math.max(0, Math.floor(diffMs / 60000));
+
+  if (diffMinutes < 1) {
+    return 'Just now';
+  }
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes}m ago`;
+  }
+
+  const diffHours = Math.floor(diffMinutes / 60);
+
+  if (diffHours < 24) {
+    return `${diffHours}h ago`;
+  }
+
+  const diffDays = Math.floor(diffHours / 24);
+
+  return `${diffDays}d ago`;
+}
 
 export default function HomeScreen() {
   const inputQuery = useSearchStore((state) => state.inputQuery);
-  const status = useSearchStore((state) => state.status);
-  const results = useSearchStore((state) => state.results);
-  const recentSearches = useSearchStore((state) => state.recentSearches);
   const category = useSearchStore((state) => state.category);
   const setInputQuery = useSearchStore((state) => state.setInputQuery);
   const clearInput = useSearchStore((state) => state.clearInput);
   const setCategory = useSearchStore((state) => state.setCategory);
-  const runSearch = useSearchStore((state) => state.search);
-  const invalidateActiveRequest = useSearchStore(
-    (state) => state.invalidateActiveRequest,
-  );
   const favorites = useFavoritesStore((state) => state.favorites);
-  const [isFocused, setIsFocused] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      setIsFocused(true);
-
-      return () => {
-        setIsFocused(false);
-        invalidateActiveRequest();
-      };
-    }, [invalidateActiveRequest]),
+  const history = useHistoryStore((state) => state.history);
+  const showMatureCategories = useSettingsStore(
+    (state) => state.showMatureCategories,
+  );
+  const visibleCategories = useMemo(
+    () => getVisibleSearchCategories(showMatureCategories),
+    [showMatureCategories],
+  );
+  const visibleHistory = useMemo(
+    () =>
+      showMatureCategories
+        ? history
+        : history.filter((entry) => entry.category !== 'adult'),
+    [history, showMatureCategories],
+  );
+  const visibleFavorites = useMemo(
+    () =>
+      showMatureCategories
+        ? favorites
+        : favorites.filter((torrent) => !isAdultTorrent(torrent)),
+    [favorites, showMatureCategories],
   );
 
-  useInstantTorrentSearch(inputQuery, isFocused);
+  useEffect(() => {
+    if (
+      category === 'adult' &&
+      !visibleCategories.some((item) => item.value === category)
+    ) {
+      setCategory('all');
+    }
+  }, [category, setCategory, visibleCategories]);
 
-  function openSearch(query = inputQuery) {
+  function openSearch(query = inputQuery, nextCategory = category) {
     const trimmedQuery = query.trim();
 
     if (!trimmedQuery) {
@@ -54,116 +113,183 @@ export default function HomeScreen() {
     }
 
     setInputQuery(trimmedQuery);
-    router.push({ pathname: '/search', params: { query: trimmedQuery } });
+    setCategory(nextCategory);
+    router.push({
+      pathname: '/search',
+      params: {
+        query: trimmedQuery,
+        ...(nextCategory !== 'all' ? { category: nextCategory } : {}),
+      },
+    });
   }
 
   function selectCategory(nextCategory: TorrentCategory) {
     setCategory(nextCategory);
-
-    if (isFocused && inputQuery.trim().length >= 2) {
-      void runSearch({
-        query: inputQuery,
-        category: nextCategory,
-        page: 1,
-        commit: false,
-      });
-    }
   }
+
+  function openFavorite(torrent: Torrent) {
+    router.push({ pathname: '/torrent/[id]', params: { id: torrent.id } });
+  }
+
+  const hasLocalContent =
+    visibleHistory.length > 0 || visibleFavorites.length > 0;
 
   return (
     <View className="flex-1 bg-background">
-      <Screen contentClassName="py-5 pb-32">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-lg font-bold">
-            <Text className="text-lg font-bold text-foreground">Torrent</Text>
-            <Text className="text-lg font-bold text-primary">Bay</Text>
-          </Text>
-          <Link href="/settings" asChild>
-            <IconButton accessibilityLabel="Open settings">
-              <Settings color={colors.foreground} size={20} />
-            </IconButton>
-          </Link>
-        </View>
-
-        <View className="mt-4">
-          <SearchInput
-            label="Search torrents"
-            onChangeText={setInputQuery}
-            onClear={clearInput}
-            onSubmit={() => openSearch()}
-            placeholder="Search for movies, series, games..."
-            value={inputQuery}
-          />
-          {inputQuery.trim().length >= 2 ? (
-            <Text className="mt-3 text-sm text-muted">
-              {status === 'loading'
-                ? 'Scanning the provider pipeline...'
-                : `${results.length} instant result${results.length === 1 ? '' : 's'} ready`}
-            </Text>
-          ) : null}
-        </View>
-
-        <Card className="mt-4 p-4 shadow-none">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-2">
-              <Clock3 color={colors.primarySoft} size={17} />
-              <Text className="text-base font-semibold">Recent Searches</Text>
+      <Screen contentClassName="pb-24 pt-4">
+        <View className="flex-1 justify-between">
+          <View>
+            <View className="flex-row items-center justify-between">
+              <BrandWordmark size={32} />
+              <Link href="/settings" asChild>
+                <IconButton accessibilityLabel="Open settings">
+                  <Settings color={colors.textPrimary} size={20} />
+                </IconButton>
+              </Link>
             </View>
-            <Search color={colors.muted} size={17} />
+
+            <View className="mt-4">
+              <SearchInput
+                label="Search torrents"
+                onChangeText={setInputQuery}
+                onClear={clearInput}
+                onSubmit={() => openSearch()}
+                placeholder="Search torrents"
+                value={inputQuery}
+              />
+              <CategoryGrid
+                className="mt-2"
+                onSelect={selectCategory}
+                selected={category}
+                showMatureCategories={showMatureCategories}
+              />
+            </View>
+
+            {!hasLocalContent ? (
+              <Card className="mt-3 flex-row items-center gap-3 p-4 shadow-none">
+                <View className="h-9 w-9 items-center justify-center rounded-full bg-primary-soft">
+                  <SearchIcon color={colors.primary} size={18} />
+                </View>
+                <Text className="flex-1 text-sm text-content-secondary">
+                  Search by title, software name, artist, or keyword.
+                </Text>
+              </Card>
+            ) : null}
+
+            <Card
+              className={cn(
+                'p-4 shadow-none',
+                hasLocalContent ? 'mt-3' : 'mt-4',
+              )}
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-2">
+                  <Clock3 color={colors.primary} size={17} />
+                  <Text className="text-base font-semibold">
+                    Recent searches
+                  </Text>
+                </View>
+                {visibleHistory.length > 5 ? (
+                  <Link href="/history" asChild>
+                    <Pressable
+                      accessibilityLabel="Open full search history"
+                      accessibilityRole="button"
+                      className="min-h-10 justify-center px-2 active:opacity-85"
+                      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                    >
+                      <Text className="text-sm font-semibold text-primary">
+                        See all
+                      </Text>
+                    </Pressable>
+                  </Link>
+                ) : (
+                  <SearchIcon color={colors.textMuted} size={17} />
+                )}
+              </View>
+              {visibleHistory.length > 0 ? (
+                <View className="mt-2">
+                  {visibleHistory.slice(0, 5).map((recent, index, visible) => (
+                    <Pressable
+                      accessibilityLabel={`Search again for ${recent.query}`}
+                      accessibilityRole="button"
+                      className={cn(
+                        'min-h-12 flex-row items-center gap-3 border-b border-border py-2 active:opacity-85',
+                        index === visible.length - 1 ? 'border-b-0' : null,
+                      )}
+                      key={recent.id}
+                      onPress={() => {
+                        setInputQuery(recent.query);
+                        setCategory(recent.category);
+                        router.push({
+                          pathname: '/search',
+                          params: {
+                            query: recent.query,
+                            ...(recent.category !== 'all'
+                              ? { category: recent.category }
+                              : {}),
+                            ...(recent.sort !== 'relevance'
+                              ? { sort: recent.sort }
+                              : {}),
+                          },
+                        });
+                      }}
+                    >
+                      <Clock3 color={colors.textMuted} size={18} />
+                      <View className="flex-1">
+                        <Text className="font-semibold" numberOfLines={1}>
+                          {recent.query}
+                        </Text>
+                        <Text className="mt-0.5 text-xs text-content-muted">
+                          {getSearchCategoryLabel(recent.category)} ·{' '}
+                          {formatRelativeSearchDate(recent.searchedAt)}
+                        </Text>
+                      </View>
+                      <ChevronRight color={colors.textMuted} size={19} />
+                    </Pressable>
+                  ))}
+                </View>
+              ) : (
+                <Text className="mt-2 text-content-secondary">
+                  Your latest searches appear here for quick access.
+                </Text>
+              )}
+            </Card>
+
+            <Card className="mt-4 p-4 shadow-none">
+              <View className="flex-row items-center gap-3">
+                <Star color={colors.primary} size={20} />
+                <Text className="text-base font-semibold">Favorites</Text>
+              </View>
+              {visibleFavorites.length > 0 ? (
+                <View className="mt-3">
+                  {visibleFavorites.slice(0, 3).map((favorite) => (
+                    <TorrentCard
+                      cached
+                      favorite
+                      key={favorite.id}
+                      onPress={openFavorite}
+                      torrent={favorite}
+                      variant="favorite"
+                    />
+                  ))}
+                </View>
+              ) : (
+                <Text className="mt-2 text-content-secondary">
+                  Saved torrents will become launch points for related searches.
+                </Text>
+              )}
+            </Card>
           </View>
-          {recentSearches.length > 0 ? (
-            <View className="mt-3 flex-row flex-wrap gap-2">
-              {recentSearches.map((recent) => (
-                <Chip
-                  accessibilityLabel={`Search again for ${recent}`}
-                  className="min-h-9 px-3 py-1"
-                  key={recent}
-                  label={recent}
-                  onPress={() => {
-                    setInputQuery(recent);
-                    openSearch(recent);
-                  }}
-                />
-              ))}
-            </View>
-          ) : (
-            <Text className="mt-2 text-muted">
-              Your latest searches appear here for quick access.
-            </Text>
-          )}
-        </Card>
 
-        <View className="mt-5">
-          <Text className="mb-3 text-base font-semibold">Categories</Text>
-          <CategoryGrid selected={category} onSelect={selectCategory} />
+          <Card className="mt-6 flex-row gap-3 p-4 shadow-none">
+            <Info color={colors.info} size={19} />
+            <Text className="flex-1 text-sm leading-[20px] text-content-secondary">
+              {
+                'TorrentBay indexes public metadata from an external provider. It does not host or download files.'
+              }
+            </Text>
+          </Card>
         </View>
-
-        <Card className="mt-5 p-4 shadow-none">
-          <View className="flex-row items-center gap-3">
-            <Star color={colors.primarySoft} size={20} />
-            <Text className="text-base font-semibold">Favorites shortcuts</Text>
-          </View>
-          {favorites.length > 0 ? (
-            <View className="mt-4 flex-row flex-wrap gap-3">
-              {favorites.slice(0, 4).map((favorite) => (
-                <Chip
-                  accessibilityLabel={`Search favorite ${favorite.name}`}
-                  className="min-h-9 px-3 py-1"
-                  key={favorite.id}
-                  label={favorite.name}
-                  onPress={() => {
-                    setInputQuery(favorite.name);
-                    openSearch(favorite.name);
-                  }}
-                />
-              ))}
-            </View>
-          ) : (
-            <Text className="mt-2 text-muted">
-              Saved torrents will become launch points for related searches.
-            </Text>
-          )}
-        </Card>
       </Screen>
       <BottomShortcuts active="home" />
     </View>
