@@ -12,6 +12,7 @@
     },
     "android": {
       "package": "com.torrentbay.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#08111F"
       }
