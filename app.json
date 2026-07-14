@@ -26,6 +26,11 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#08111F",
+          "android": {
+            "drawable": {
+              "icon": "./src/assets/splashscreen_logo.xml"
+            }
+          },
           "dark": {
             "backgroundColor": "#08111F"
           }
