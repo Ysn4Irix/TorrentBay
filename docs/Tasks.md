@@ -5,7 +5,7 @@
 - Initialize Expo React Native with TypeScript, NativeWind, Expo Router, Zustand, MMKV, and Lucide icons.
 - Configure strict TypeScript, linting, formatting, path aliases, and app constants.
 - Create clean architecture folders for app routes, features, services, models, store, hooks, utils, constants, and types.
-- Add base routes for Splash, Home, Search Results, Torrent Details, Favorites, and Settings.
+- Add base routes for Home at `/`, Search Results, Torrent Details, Favorites, and Settings.
 - Establish shared UI primitives, theme tokens, and reusable loading, empty, and error states.
 
 ## Milestone 2: Core Provider Metadata Pipeline

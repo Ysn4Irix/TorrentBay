@@ -192,6 +192,8 @@ Display previous searches.
 Application startup:
 
 - under 2 seconds
+- native dark launch background may appear briefly to avoid white flashes
+- no JS branded splash screen or separate splash route
 
 Search response:
 
@@ -299,13 +301,9 @@ description
 
 # 10. Application Screens
 
-## Splash
-
-Displays logo.
-
----
-
 ## Home
+
+Root route: `/`.
 
 Contains
 

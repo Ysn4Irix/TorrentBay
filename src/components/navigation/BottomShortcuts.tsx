@@ -17,7 +17,7 @@ const shortcuts = [
   {
     key: 'home',
     label: 'Home',
-    href: '/home',
+    href: '/',
     Icon: Search,
   },
   {

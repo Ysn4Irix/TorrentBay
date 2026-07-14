@@ -22,7 +22,7 @@ Use this checklist before release. Do not mark manual QA items as passed unless 
 
 ## Accessibility Audit To Perform
 
-- [x] TalkBack: navigate launch, search, results, details, favorites, and settings with meaningful labels and roles.
+- [x] TalkBack: navigate home, search, results, details, favorites, and settings with meaningful labels and roles.
 - [x] Reading order: verify screen reader focus follows the visual/task order for lists, dialogs, sheets, and action rows.
 - [x] Text scaling: test large Android font/display sizes and confirm content remains usable without clipped critical controls.
 - [x] Touch targets: confirm primary actions, list rows, tabs, filters, and destructive actions meet practical Android touch target sizing.
@@ -31,7 +31,7 @@ Use this checklist before release. Do not mark manual QA items as passed unless 
 
 ## Performance Audit To Perform
 
-- [x] Startup: observe cold and warm launch time against the PRD goal of under 2 seconds where device conditions allow.
+- [x] Startup: observe cold and warm startup time against the PRD goal of under 2 seconds where device conditions allow.
 - [x] Search flow latency: measure or record perceived time from submit to loading state, first result, empty state, or error state.
 - [x] Large-result scrolling: test long result sets for smooth FlatList scrolling, pagination continuity, and no visible blanking/jank.
 - [x] Memory and re-renders: observe memory growth during repeated searches/details navigation and watch for obvious unnecessary re-renders or UI thrashing.
@@ -52,7 +52,7 @@ bunx expo export --platform android
 
 ## Release Review To Perform
 
-- [x] Version/config: confirm `package.json`, Expo app config, app name, Android package, icons, splash, permissions, and supported orientation are correct.
+- [x] Version/config: confirm `package.json`, Expo app config, app name, Android package, icons, native dark launch background, permissions, and supported orientation are correct.
 - [x] Legal/product constraints: confirm the app does not download, host, stream, or store torrent content and uses Apibay only for metadata lookup.
 - [x] Source notices: confirm dependency/source notices are present or documented as required by project policy and licenses.
 - [x] Acceptance criteria: review `docs/PRD.md` acceptance criteria and record any unmet items before release.

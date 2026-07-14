@@ -474,7 +474,7 @@ export default function SearchResultsScreen() {
           {error.kind === 'provider_unavailable' ? (
             <Button
               label="Back to Home"
-              onPress={() => router.replace('/home')}
+              onPress={() => router.replace('/')}
               variant="secondary"
             />
           ) : null}

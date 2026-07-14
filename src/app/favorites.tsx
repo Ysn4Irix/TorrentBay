@@ -154,7 +154,7 @@ export default function FavoritesScreen() {
                 className="mt-5"
                 label="Start searching"
                 leftIcon={<Search color={colors.background} size={18} />}
-                onPress={() => router.push('/home')}
+                onPress={() => router.push('/')}
               />
             </Card>
           }

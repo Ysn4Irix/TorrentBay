@@ -180,7 +180,7 @@ Use the Android system font through React Native defaults. Do not add a custom f
 
 | Style       | Size | Line height | Weight | Usage                          |
 | ----------- | ---: | ----------: | -----: | ------------------------------ |
-| Display     |   32 |          38 |    700 | Splash or rare hero text       |
+| Display     |   32 |          38 |    700 | Rare hero text                 |
 | H1          |   24 |          30 |    700 | Screen titles                  |
 | H2          |   20 |          26 |    700 | Section titles                 |
 | H3          |   17 |          23 |    600 | Card titles                    |
@@ -310,7 +310,7 @@ Recommended Expo Router structure:
 ```text
 app/
   _layout
-  index                 Home
+  index                 Home (`/`)
   search
     index               Search Results
     filters             Filter Sheet route or modal
@@ -368,8 +368,7 @@ Height: 56 dp plus status inset.
 
 ```text
 Launch
-→ Splash
-→ Home
+→ Home (`/`)
 → Enter query
 → Optional category selection
 → Submit search
@@ -412,25 +411,22 @@ Search
 
 # 11. Screen Specifications
 
-# 11.1 Splash Screen
+# 11.1 Native Launch Background
 
 ## Purpose
 
-Provide immediate brand recognition while local state initializes.
+Avoid a white flash before the React Native UI renders.
 
 ## Layout
 
-- Full-screen `color.background`.
-- Centered logo mark, 72–88 dp.
-- Product name below the mark.
-- Optional small indeterminate progress indicator near the bottom.
+- Use a native/Expo launch background matching the dark app background.
+- Do not add a JS-rendered branded splash screen, logo, wordmark, or progress indicator.
 
 ## Behavior
 
-- Do not show for longer than necessary.
-- Avoid animated video or large assets.
-- Use a simple 200–300 ms fade transition.
-- Route to Home after initialization.
+- The native launch surface may appear briefly while the app starts.
+- The first React-rendered route is Home at `/`.
+- Do not add a separate Splash route or screen.
 
 ---
 
@@ -1478,8 +1474,7 @@ These wireframes describe hierarchy, not final pixel styling.
 
 | Screen    | Initial         | Loading                | Success           | Empty                  | Offline                     | Error                     |
 | --------- | --------------- | ---------------------- | ----------------- | ---------------------- | --------------------------- | ------------------------- |
-| Splash    | Logo            | Small progress         | Navigate          | N/A                    | Navigate with offline state | Safe fallback             |
-| Home      | Search ready    | Local-state loading    | History/favorites | Guidance content       | Local content available     | Local-state error message |
+| Home      | Search ready at `/` | Local-state loading    | History/favorites | Guidance content       | Local content available     | Local-state error message |
 | Results   | Query preserved | Skeleton cards         | Result list       | No-results state       | Offline state               | Provider/parser state     |
 | Details   | Metadata shell  | Optional local loading | Full metadata     | Missing fields handled | Saved metadata shown        | Readable error            |
 | Favorites | Section shell   | Local skeleton         | Saved list        | Empty state            | Fully available             | Storage error             |
