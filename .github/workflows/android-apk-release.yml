@@ -1,0 +1,113 @@
+name: Android APK Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  android-apk-release:
+    name: Build and publish Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Set up Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate release configuration
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const tag = process.env.GITHUB_REF_NAME;
+          if (!/^v\d+\.\d+\.\d+$/.test(tag)) {
+            throw new Error(`Tag ${tag} must match v*.*.* with numeric version parts.`);
+          }
+
+          const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const appJson = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+          const easJson = JSON.parse(fs.readFileSync('eas.json', 'utf8'));
+          const version = tag.slice(1);
+
+          if (packageJson.version !== version) {
+            throw new Error(`Tag ${tag} does not match package.json version ${packageJson.version}.`);
+          }
+
+          if (appJson.expo?.version !== version) {
+            throw new Error(`Tag ${tag} does not match app.json expo.version ${appJson.expo?.version}.`);
+          }
+
+          const buildType = easJson.build?.apk?.android?.buildType;
+          if (buildType !== 'apk') {
+            throw new Error(`eas.json build.apk.android.buildType must be "apk", got ${JSON.stringify(buildType)}.`);
+          }
+          NODE
+
+      - name: Format check
+        run: bun run format:check
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bun test
+
+      - name: Check Expo dependencies
+        run: bunx expo install --check
+
+      - name: Expo Doctor
+        run: bunx expo-doctor
+
+      - name: Build Android APK
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          eas build --platform android --profile apk --non-interactive --wait --json > eas-build.json
+
+      - name: Download APK artifact
+        run: |
+          mkdir -p artifacts
+          APK_URL=$(node <<'NODE'
+          const fs = require('node:fs');
+
+          const output = JSON.parse(fs.readFileSync('eas-build.json', 'utf8'));
+          const build = Array.isArray(output) ? output[0] : output;
+          const url = build?.artifacts?.buildUrl ?? build?.artifacts?.applicationArchiveUrl ?? build?.artifactUrl;
+
+          if (!url) {
+            throw new Error('Could not find APK artifact URL in EAS build JSON output.');
+          }
+
+          process.stdout.write(url);
+          NODE
+          )
+          curl --fail --location --output "artifacts/TorrentBay-${GITHUB_REF_NAME}.apk" "$APK_URL"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: TorrentBay ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: artifacts/TorrentBay-${{ github.ref_name }}.apk
+          fail_on_unmatched_files: true
+          overwrite_files: false

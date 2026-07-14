@@ -6,7 +6,7 @@ Use this checklist before release. Do not mark manual QA items as passed unless 
 
 - Backend/provider: Apibay.
 - Automated coverage: unit, store, and service tests only.
-- Release validation: Expo doctor/install checks and Expo export only; no EAS release build is required for this milestone.
+- Release validation: Expo doctor/install checks plus the tag-only GitHub Actions EAS APK release workflow.
 
 ## Manual QA To Perform
 
@@ -47,8 +47,9 @@ bun run typecheck
 bun test
 bunx expo install --check
 bunx expo-doctor
-bunx expo export --platform android
 ```
+
+The Android APK is built by the GitHub Actions workflow when a tag matching `v*.*.*` is pushed. The workflow uses the EAS `apk` profile and requires the `EXPO_TOKEN` repository secret.
 
 ## Release Review To Perform
 

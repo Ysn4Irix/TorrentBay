@@ -1,16 +1,15 @@
-# APK and GitHub Release Plan
+# Automated APK GitHub Release Plan
 
-This is the approved release plan for publishing the first installable Android APK through a GitHub Release.
+This is the release runbook for publishing installable Android APKs through the automated GitHub Actions workflow.
 
-## Approved Choices
+## Release Automation
 
-- Version and Git tag: `v0.1.0`.
-- Publish the GitHub Release immediately, not as a draft.
-- Commit release configuration changes before creating the tag.
-- Expo/EAS is not currently logged in.
-- GitHub CLI is currently logged in.
-- Use the existing Expo account. Pause when `eas login` requires browser authentication or credentials.
-- Recommended path: create a signed Android APK with EAS Build, then upload it to GitHub Releases with GitHub CLI.
+- Releases are automated only by pushing a Git tag that matches `v*.*.*`, for example `v0.1.1`.
+- The numeric tag version must match both `package.json` and `app.json` `expo.version`.
+- The workflow builds the Android APK with EAS using the current EAS build profile name: `apk`.
+- The required GitHub repository secret is `EXPO_TOKEN`. The token must authenticate EAS builds for the Expo account that owns the project.
+- The GitHub Release is published immediately. It is not created as a draft.
+- Existing release assets are not overwritten. If the release or asset upload would conflict with an existing asset, the workflow should fail so the conflict can be resolved explicitly.
 
 ## Important Note
 
@@ -20,13 +19,13 @@ This is the approved release plan for publishing the first installable Android A
 
 - Work from the project root: `C:\Users\lenovo\Desktop\Projects\Torrentbay`.
 - Confirm the worktree contains only intended release changes before committing or tagging.
-- Ensure release configuration produces an Android APK, not only an AAB. For EAS, the Android build profile should use `android.buildType: "apk"`.
+- Confirm `EXPO_TOKEN` is configured in GitHub repository secrets.
+- Confirm the EAS `apk` profile still produces an Android APK, not only an AAB. In `eas.json`, the profile should use `android.buildType: "apk"`.
 
-## Intended Commands
+## Future Release Steps
 
-### 1. Validate Before Release Configuration
-
-Run the existing quality gates before release-specific changes:
+1. Bump the app version and Android `versionCode` in the app configuration.
+2. Run the existing quality gates before release:
 
 ```sh
 bun run format:check
@@ -37,106 +36,33 @@ bunx expo install --check
 bunx expo-doctor
 ```
 
-### 2. Log In To EAS
-
-Use the existing Expo account:
-
-```sh
-bunx eas login
-```
-
-Pause here if the command requires browser authentication or credentials.
-
-Confirm authentication after login:
-
-```sh
-bunx eas whoami
-```
-
-### 3. Configure EAS APK Build
-
-If EAS has not already been configured, initialize it:
-
-```sh
-bunx eas build:configure
-```
-
-Ensure the selected Android release profile builds an APK. The intended `eas.json` shape is:
-
-```json
-{
-  "build": {
-    "production-apk": {
-      "android": {
-        "buildType": "apk"
-      }
-    }
-  }
-}
-```
-
-### 4. Commit Release Configuration Before Tagging
-
-Review and commit only intended release configuration changes:
+3. Commit the version changes and push the commit:
 
 ```sh
 git status
 git diff
-git add app.json eas.json package.json bun.lock
-git commit -m "chore: configure Android APK release"
-```
-
-Adjust the `git add` file list to match the actual files changed by EAS configuration. Do not tag until this commit exists.
-
-### 5. Create And Push Tag
-
-Create the approved tag from the committed release configuration:
-
-```sh
-git tag v0.1.0
+git add app.json
+git commit -m "chore: release vX.Y.Z"
 git push origin HEAD
-git push origin v0.1.0
 ```
 
-### 6. Build Signed Android APK With EAS
-
-Start the APK build:
+4. Create and push the matching release tag:
 
 ```sh
-bunx eas build --platform android --profile production-apk
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
-When the build completes, download the APK artifact from the EAS build URL or with the EAS CLI if available in the installed version. Save it using the approved versioned name:
-
-```sh
-mkdir -p dist
-bunx eas build:download --platform android --latest --output dist/Torrentbay-v0.1.0.apk
-```
-
-If `eas build:download` is unavailable, use the artifact URL shown by `eas build` and save the file as `dist/Torrentbay-v0.1.0.apk`.
-
-### 7. Publish GitHub Release Immediately
-
-Create a non-draft GitHub Release and upload the APK:
-
-```sh
-gh release create v0.1.0 dist/Torrentbay-v0.1.0.apk --title "v0.1.0" --notes "Initial Android APK release."
-```
-
-Verify the release and asset:
-
-```sh
-gh release view v0.1.0 --web
-```
+5. Monitor the GitHub Actions run. A successful run should publish the non-draft GitHub Release and attach the APK asset.
 
 ## Release Checklist
 
+- [ ] App version bumped.
+- [ ] Android `versionCode` bumped.
 - [ ] Quality gates passed.
-- [ ] EAS login completed with the existing Expo account.
-- [ ] EAS APK build profile configured.
-- [ ] Release configuration committed before tagging.
-- [ ] Tag `v0.1.0` created and pushed.
-- [ ] Signed Android APK built by EAS.
-- [ ] APK downloaded and named `Torrentbay-v0.1.0.apk`.
-- [ ] GitHub Release `v0.1.0` published immediately, not as draft.
+- [ ] Version changes committed and pushed.
+- [ ] Tag matching `v*.*.*` created and pushed.
+- [ ] GitHub Actions EAS build used profile `apk`.
+- [ ] GitHub Release published immediately, not as draft.
 - [ ] APK attached to the GitHub Release.
+- [ ] Workflow failed instead of overwriting any existing conflicting release asset.

@@ -45,5 +45,5 @@
 - Profile startup time, search flow, memory usage, FlatList performance, and unnecessary re-renders.
 - Complete unit/store/service coverage for parser, Apibay metadata pipeline, search state, favorites, and local persistence. No automated UI/navigation test dependency is required.
 - Validate graceful handling for no internet, invalid provider responses, provider changes, timeouts, and unknown errors.
-- Run lint, type check, unit tests, Expo doctor/install checks, and Expo export before release. EAS build setup is out of scope.
+- Run lint, type check, unit tests, and Expo doctor/install checks before release. APK releases are built by the tag-only GitHub Actions workflow using the EAS `apk` profile.
 - Confirm accepted scope deviations are documented: Apibay is the intentional provider backend for torrent metadata, replacing the original HTML-only scraper requirement.

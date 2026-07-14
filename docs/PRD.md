@@ -29,7 +29,7 @@ It only indexes publicly available torrent metadata from the accepted provider p
 
 - Apibay is an intentional accepted deviation from the original HTML-only scraper PRD, not a bug.
 - Automated coverage is unit/store/service focused; UI and navigation validation are handled through manual QA.
-- Release readiness means Expo doctor/install checks and Expo export. EAS build setup is out of scope.
+- Release readiness means Expo doctor/install checks plus the tag-only GitHub Actions workflow that builds an Android APK with the EAS `apk` profile.
 
 ---
 
@@ -574,7 +574,7 @@ The application is considered complete when:
 - The application handles provider response changes gracefully.
 - The UI is responsive and performant.
 - NativeWind is used consistently for styling.
-- Expo doctor/install checks and Expo export complete successfully.
-- EAS build setup is not required for this milestone.
+- Expo doctor/install checks complete successfully.
+- The tag-only GitHub Actions workflow builds and publishes an APK release with the EAS `apk` profile.
 - The architecture remains modular, maintainable, and AI-agent-friendly.
 ````
